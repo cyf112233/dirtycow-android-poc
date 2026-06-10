@@ -1,4 +1,4 @@
-name: Build DirtyCow for Android with NDK r10e
+name: Build DirtyCow for Android with NDK r15c
 
 on:
   push:
@@ -15,28 +15,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Android NDK r10e
+      - name: Install Android NDK r15c
         run: |
-          # 注意：r10e的下载链接是 http，不是 https
-          wget http://dl.google.com/android/repository/android-ndk-r10e-linux-x86_64.bin
-          chmod +x android-ndk-r10e-linux-x86_64.bin
-          ./android-ndk-r10e-linux-x86_64.bin
-          echo "${{ github.workspace }}/android-ndk-r10e" >> $GITHUB_PATH
+          # 下载 NDK r15c (Linux 64-bit)
+          wget https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip
+          unzip -q android-ndk-r15c-linux-x86_64.zip
+          echo "${{ github.workspace }}/android-ndk-r15c" >> $GITHUB_PATH
 
       - name: Build dirtycow and run-as binaries
         run: |
-          # 使用 ndk-build 进行编译，APP_PLATFORM 设置为 android-21
+          # 直接调用 ndk-build，绕过原 Makefile 中的 adb 依赖
           ndk-build \
             NDK_PROJECT_PATH=. \
             APP_BUILD_SCRIPT=./Android.mk \
             APP_ABI=all \
             APP_PLATFORM=android-21
 
-      - name: Upload artifacts
+      - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: dirtycow-binaries-ndk-r10e
+          name: dirtycow-binaries-ndk-r15c
           path: |
             libs/**/dirtycow
             libs/**/run-as
-            
