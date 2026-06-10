@@ -1,0 +1,37 @@
+name: Build DirtyCow for Android
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Android NDK
+        run: |
+          # 下载并解压 NDK r25c (稳定版，兼容 API 16)
+          wget https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
+          unzip -q android-ndk-r25c-linux.zip
+          echo "ANDROID_NDK_HOME=${GITHUB_WORKSPACE}/android-ndk-r25c" >> $GITHUB_ENV
+          # 将 NDK 工具链加入 PATH
+          echo "${GITHUB_WORKSPACE}/android-ndk-r25c" >> $GITHUB_PATH
+
+      - name: Build with ndk-build
+        run: |
+          # 确保 Makefile 和 Android.mk 存在
+          make root
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dirtycow-binaries
+          path: libs/**/dirtycow libs/**/run-as
