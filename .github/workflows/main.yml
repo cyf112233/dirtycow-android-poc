@@ -5,7 +5,6 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  # 允许手动触发
   workflow_dispatch:
 
 jobs:
@@ -18,20 +17,23 @@ jobs:
 
       - name: Set up Android NDK
         run: |
-          # 下载并解压 NDK r25c (稳定版，兼容 API 16)
+          # Download NDK r25c (supports APP_PLATFORM=android-16)
           wget https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
           unzip -q android-ndk-r25c-linux.zip
-          echo "ANDROID_NDK_HOME=${GITHUB_WORKSPACE}/android-ndk-r25c" >> $GITHUB_ENV
-          # 将 NDK 工具链加入 PATH
-          echo "${GITHUB_WORKSPACE}/android-ndk-r25c" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/android-ndk-r25c" >> $GITHUB_PATH
 
-      - name: Build with ndk-build
+      - name: Build dirtycow and run-as binaries
         run: |
-          # 确保 Makefile 和 Android.mk 存在
-          make root
+          ndk-build \
+            NDK_PROJECT_PATH=. \
+            APP_BUILD_SCRIPT=./Android.mk \
+            APP_ABI=all \
+            APP_PLATFORM=android-16
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dirtycow-binaries
-          path: libs/**/dirtycow libs/**/run-as
+          path: |
+            libs/**/dirtycow
+            libs/**/run-as
